@@ -16,7 +16,7 @@ function App() {
       <div className="flex justify-center items-center h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
         <div className="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full">
           <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            Submit Your Link
+            Enter your product URL
           </h1>
           <form onSubmit={handleSubmit}>
             <input
