@@ -12,29 +12,6 @@ function ProductReview() {
     const [summary, setSummary] = useState('');
     const [reviewData, setReviewData] = useState(null); // State to store review data
 
-    const formatUrl = (url) => {
-        try {
-            const parsedUrl = new URL(url);
-            const pathname = parsedUrl.pathname;
-            const amazonBaseUrl = 'https://www.amazon.com'
-
-            // If the URL path contains 'product-reviews', use it directly
-            if (pathname.includes('/product-reviews/')) {
-                return amazonBaseUrl + pathname.split('/product-reviews/')[0] + '/product-reviews/' + pathname.split('/product-reviews/')[1].split('/')[0];
-            }
-
-            // Otherwise, handle Type 1 URLs
-            if (pathname.includes('/dp/')) {
-                return amazonBaseUrl + pathname.split('/dp/')[0] + '/product-reviews/' + pathname.split('/dp/')[1].split('/')[0];
-            }
-
-            // Default return in case no match
-            return url;
-        } catch (error) {
-            console.error('Error formatting URL:', error);
-            return url;
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -42,8 +19,7 @@ function ProductReview() {
         setShowProsCons(true);
 
         try {
-            const formattedLink = formatUrl(link);
-            const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/getReviews/`, { url: formattedLink });
+            const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/getReviews/`, { url: link });
             setPros(response.data.pros);
             setCons(response.data.cons);
             setSummary(response.data.summary);
@@ -64,7 +40,7 @@ function ProductReview() {
         <div className="flex justify-center items-center h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
             <div className={`bg-white p-8 rounded-xl shadow-lg w-screen mx-20 transition-all duration-500 ${showProsCons ? 'max-h-full' : 'max-h-96'}`}>
                 <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-                    Enter your product URL
+                    Enter your product review page URL
                 </h1>
                 <form onSubmit={handleSubmit}>
                     <input
