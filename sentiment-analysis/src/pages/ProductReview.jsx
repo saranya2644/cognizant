@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import PieChart from '../components/PieChart';
+import RatingsComponent from '../components/RatingsComponent';
 
 function ProductReview() {
     const [link, setLink] = useState('');
@@ -11,7 +12,16 @@ function ProductReview() {
     const [cons, setCons] = useState([]);
     const [summary, setSummary] = useState('');
     const [reviewData, setReviewData] = useState(null); // State to store review data
+    const [productName, setProductName] = useState('');
+    const [features, setFeatures] = useState([]);
 
+    const convertToReviewUrl = (url) => {
+        if (url.includes("flipkart.com")) {
+            // Convert the product URL to review URL
+            return url.replace(/\/p\/it/, "/product-reviews/it");
+        }
+        return url;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,10 +29,13 @@ function ProductReview() {
         setShowProsCons(true);
 
         try {
-            const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/getReviews/`, { url: link });
+            const formattedLink = convertToReviewUrl(link);
+            const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/getReviews/`, { url: formattedLink });
             setPros(response.data.pros);
             setCons(response.data.cons);
             setSummary(response.data.summary);
+            setProductName(response.data.prodTitle);
+            setFeatures(response.data.features);
             setReviewData({
                 Positive: response.data.Positive,
                 Negative: response.data.Negative,
@@ -81,13 +94,17 @@ function ProductReview() {
                                 <div>
                                 {summary && (
                                     <div className="">
-                                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Product Summary</h2>
+                                        <h2 className="text-2xl font-bold text-gray-800 mb-4">{productName}'s Review Summary</h2>
                                         <p className="text-gray-700">{summary}</p>
                                     </div>
                                 )}
 
+                                {/* Features section */}
+                                <RatingsComponent features={features} />
+
+
                                 {/* Pros and cons sections */}
-                                <div className="flex gap-10 mt-10">
+                                <div className="flex gap-10 mt-8">
                                     <div className=" h-80 w-[50%]">
                                         {showProsConsHeaders && (
                                             <>
