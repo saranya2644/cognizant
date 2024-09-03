@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import PieChart from '../components/PieChart';
 import RatingsComponent from '../components/RatingsComponent';
+import SadFaceSVG from '../assets/SadFaceSVG';
 
 function ProductReview() {
     const [link, setLink] = useState('');
@@ -14,6 +15,7 @@ function ProductReview() {
     const [reviewData, setReviewData] = useState(null); // State to store review data
     const [productName, setProductName] = useState('');
     const [features, setFeatures] = useState([]);
+    const [error, setError] = useState(false);
 
     const convertToReviewUrl = (url) => {
         if (url.includes("flipkart.com")) {
@@ -27,10 +29,21 @@ function ProductReview() {
         e.preventDefault();
         setLoading(true);
         setShowProsCons(true);
+        setError(false)
 
         try {
             const formattedLink = convertToReviewUrl(link);
             const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/getReviews/`, { url: formattedLink });
+            if (response.data.pros.length === 0 ||
+                response.data.cons.length === 0 ||
+                response.data.summary.length === 0 ||
+                response.data.prodTitle.length === 0 ||
+                response.data.features.length === 0
+            ) {
+                setError(true);
+                setLoading(false);
+                return;
+            }
             setPros(response.data.pros);
             setCons(response.data.cons);
             setSummary(response.data.summary);
@@ -44,6 +57,7 @@ function ProductReview() {
             setLoading(false);
             setShowProsConsHeaders(true);
         } catch (error) {
+            setError(true);
             console.error('Error fetching reviews:', error);
             setLoading(false);
         }
@@ -69,13 +83,23 @@ function ProductReview() {
                         className="bg-purple-600 disabled:bg-purple-400 text-white px-4 py-3 rounded-lg mt-6 w-full hover:bg-purple-700 transition duration-300 font-semibold shadow-md"
                         disabled={loading}
                     >
-                            <div className="">
-                                Submit
-                            </div>
+                        <div className="">
+                            Submit
+                        </div>
                     </button>
                 </form>
 
-                {showProsCons && (
+                {error && (
+                    <div className="flex py-10 flex-col items-center justify-center">
+                        <div className="flex flex-col items-center text-center">
+                            <SadFaceSVG />
+                            <p className="mt-4 text-lg font-semibold text-red-600">Error Loading Data or No Reviews Available</p>
+                        </div>
+                    </div>
+                )}
+
+
+                {(!error && showProsCons) && (
                     <div className="mt-6 flex flex-col gap-10">
                         {loading ? (
                             <div className="flex justify-center items-center h-80">
@@ -92,61 +116,61 @@ function ProductReview() {
                             <div className='flex'>
                                 {/* Product summary */}
                                 <div>
-                                {summary && (
-                                    <div className="">
-                                        <h2 className="text-2xl font-bold text-gray-800 mb-4">{productName}'s Review Summary</h2>
-                                        <p className="text-gray-700">{summary}</p>
+                                    {summary && (
+                                        <div className="">
+                                            <h2 className="text-2xl font-bold text-gray-800 mb-4">{productName}'s Review Summary</h2>
+                                            <p className="text-gray-700">{summary}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Features section */}
+                                    <RatingsComponent features={features} />
+
+
+                                    {/* Pros and cons sections */}
+                                    <div className="flex gap-10 mt-8">
+                                        <div className=" h-80 w-[50%]">
+                                            {showProsConsHeaders && (
+                                                <>
+                                                    <h2 className="text-3xl font-bold text-green-600 mb-4">Pros</h2>
+                                                    <ul className="list-disc list-inside text-green-500 mb-6 overflow-y-scroll h-72">
+                                                        {pros.map((pro, index) => (
+                                                            <li
+                                                                key={index}
+                                                                className={`bg-gray-100 flex-grow text-black border-l-8 border-green-500 rounded-md px-3 py-2 w-full mb-6 my-5 transition-all duration-500 ease-in-out ${showProsConsHeaders ? 'opacity-100' : 'opacity-0'}`}
+                                                                style={{ transitionDelay: `${index * 100}ms` }}
+                                                            >
+                                                                {pro}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <div className="h-80 w-[50%]">
+                                            {showProsConsHeaders && (
+                                                <>
+                                                    <h2 className="text-3xl font-bold text-red-600 mb-4">Cons</h2>
+                                                    <ul className="list-disc list-inside text-red-500 overflow-y-scroll h-72">
+                                                        {cons.map((con, index) => (
+                                                            <li
+                                                                key={index}
+                                                                className={`bg-gray-100 flex-grow text-black border-l-8 border-red-500 rounded-md px-3 py-2 w-full mb-6 my-5 transition-all duration-500 ease-in-out ${showProsConsHeaders ? 'opacity-100' : 'opacity-0'}`}
+                                                                style={{ transitionDelay: `${index * 100}ms` }}
+                                                            >
+                                                                {con}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
-                                )}
-
-                                {/* Features section */}
-                                <RatingsComponent features={features} />
-
-
-                                {/* Pros and cons sections */}
-                                <div className="flex gap-10 mt-8">
-                                    <div className=" h-80 w-[50%]">
-                                        {showProsConsHeaders && (
-                                            <>
-                                                <h2 className="text-3xl font-bold text-green-600 mb-4">Pros</h2>
-                                                <ul className="list-disc list-inside text-green-500 mb-6 overflow-y-scroll h-72">
-                                                    {pros.map((pro, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className={`bg-gray-100 flex-grow text-black border-l-8 border-green-500 rounded-md px-3 py-2 w-full mb-6 my-5 transition-all duration-500 ease-in-out ${showProsConsHeaders ? 'opacity-100' : 'opacity-0'}`}
-                                                            style={{ transitionDelay: `${index * 100}ms` }}
-                                                        >
-                                                            {pro}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    <div className="h-80 w-[50%]">
-                                        {showProsConsHeaders && (
-                                            <>
-                                                <h2 className="text-3xl font-bold text-red-600 mb-4">Cons</h2>
-                                                <ul className="list-disc list-inside text-red-500 overflow-y-scroll h-72">
-                                                    {cons.map((con, index) => (
-                                                        <li
-                                                            key={index}
-                                                            className={`bg-gray-100 flex-grow text-black border-l-8 border-red-500 rounded-md px-3 py-2 w-full mb-6 my-5 transition-all duration-500 ease-in-out ${showProsConsHeaders ? 'opacity-100' : 'opacity-0'}`}
-                                                            style={{ transitionDelay: `${index * 100}ms` }}
-                                                        >
-                                                            {con}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
 
                                 </div>
                                 {/* Pie Chart */}
-                                {reviewData && <PieChart data={reviewData} />}     
+                                {reviewData && <PieChart data={reviewData} />}
                             </div>
                         )}
                     </div>
